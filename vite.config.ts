@@ -6,7 +6,7 @@ export default defineConfig({
   plugins: [react()],
   
   // REEMPLAZA ESTO CON EL NOMBRE DE TU REPO
-  base: '/nombre-de-tu-repo/', 
+  base: '/mapa_ris/', 
 
   build: {
     outDir: 'docs', // <--- ESTA ES LA CLAVE: Cambia la salida a 'docs'
