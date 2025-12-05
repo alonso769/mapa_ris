@@ -1,0 +1,175 @@
+/* Estilos para los iconos personalizados */
+.custom-icon {
+  animation: bounceIn 0.8s ease-out; /* Animación de entrada */
+}
+
+/* Animación y efecto al pasar el mouse sobre el icono */
+.leaflet-marker-icon:hover {
+  transform: scale(1.2) translateY(-5px); /* Un poco más grande y sube */
+  filter: drop-shadow(0 0 8px rgba(0, 123, 255, 0.6)); /* Sombra azul brillante */
+  transition: transform 0.2s ease-out, filter 0.2s ease-out; /* Transición suave */
+  z-index: 1000 !important; /* Asegura que esté por encima de otros marcadores */
+}
+
+/* Estilos de los Popups de Leaflet */
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15); /* Sombra más pronunciada */
+  padding: 0; /* Quitamos el padding por defecto para controlarlo internamente */
+}
+
+.leaflet-popup-content {
+  margin: 0;
+  padding: 15px; /* Padding interno */
+}
+
+.leaflet-popup-tip {
+  background-color: #fff; /* Asegura que la punta sea blanca */
+}
+
+/* Animación de entrada para los iconos (opcional) */
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.3) translateY(-100px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1) translateY(0px);
+    opacity: 1;
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Estilos para la tabla (si quieres personalizar más allá de inline) */
+.ris-table-container {
+  overflow-x: auto; /* Para tablas grandes en pantallas pequeñas */
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.ris-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.ris-table th, .ris-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.ris-table thead th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ris-table tbody tr:hover {
+  background-color: #f0f8ff; /* Resalta la fila al pasar el mouse */
+  cursor: pointer;
+}
+
+.ris-table tbody tr.active-row {
+  background-color: #e6f7ff; /* Fila activa seleccionada */
+  font-weight: bold;
+}
+
+.ris-table tfoot td {
+  background-color: #f8f9fa;
+  font-weight: 700;
+  font-size: 1.1em;
+  color: #333;
+  border-top: 2px solid #e0e0e0;
+}
+
+.ris-table .cantidad-cell {
+  text-align: right;
+  font-weight: 700;
+  color: #007bff;
+}
+
+/* Animación para el centrado del mapa */
+.leaflet-container {
+  transition: all 0.5s ease-out; /* Suaviza los movimientos del mapa */
+}
+
+/* Estilo para los botones de filtro */
+.filter-button {
+  padding: 8px 18px;
+  border-radius: 25px;
+  border: 1px solid;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-size: 0.9em;
+}
+
+.filter-button.active {
+  color: white;
+  box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+}
+
+.filter-button:hover:not(.active) {
+  background-color: #f0f0f0;
+}
+
+/* Colores específicos para los botones */
+.filter-button-todos.active { background-color: #007bff; border-color: #007bff; }
+.filter-button-ris1.active { background-color: #4ade80; border-color: #4ade80; }
+.filter-button-ris2.active { background-color: #facc15; border-color: #facc15; }
+
+.filter-button-todos:not(.active) { color: #007bff; border-color: #007bff; }
+.filter-button-ris1:not(.active) { color: #4ade80; border-color: #4ade80; }
+.filter-button-ris2:not(.active) { color: #facc15; border-color: #facc15; }
+
+/* Estilos para el selector de capas base */
+.map-layer-selector {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 1000;
+  background-color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 0.9em;
+  color: #333;
+}
+
+.map-layer-selector select {
+  border: 1px solid #ccc;
+  padding: 6px;
+  border-radius: 5px;
+  outline: none;
+  cursor: pointer;
+}
+
+/* --- NUEVO: Estilos para las etiquetas permanentes de los centros --- */
+.label-centro {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: bold;
+  color: #333;
+  text-shadow: 1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff; /* Borde blanco alrededor de letras */
+  margin-top: -50px; /* Ajuste para que no tape el icono */
+}
+
+/* Eliminar la flechita del tooltip por defecto para que parezca texto flotante */
+.leaflet-tooltip-top:before, 
+.leaflet-tooltip-bottom:before, 
+.leaflet-tooltip-left:before, 
+.leaflet-tooltip-right:before {
+  display: none;
+}
