@@ -5,9 +5,15 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   
-  // SECCIÓN AÑADIDA PARA FORZAR LA EXPOSICIÓN EN LA RED
+  // REEMPLAZA ESTO CON EL NOMBRE DE TU REPO
+  base: '/nombre-de-tu-repo/', 
+
+  build: {
+    outDir: 'docs', // <--- ESTA ES LA CLAVE: Cambia la salida a 'docs'
+  },
+
   server: {
-    host: '10.0.21.76', // La IP que deseas exponer
-    port: 2005,        // El puerto que deseas usar
+    host: '0.0.0.0', // Opcional: para ver en red local si lo necesitas
+    port: 2005,
   }
 })

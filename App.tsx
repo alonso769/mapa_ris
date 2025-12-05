@@ -1,5 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+// CAMBIO AQUÍ: Usamos 'HashRouter' en lugar de 'BrowserRouter'
+import { HashRouter as Router, Routes, Route } from 'react-router-dom';
 
 // Importamos tus dos componentes principales
 import MapaRis from './MapaRis';            // Página de Internos 2025
@@ -7,7 +8,7 @@ import Adjudicacion2026 from './Adjudicacion2026'; // Página de Adjudicación 2
 
 function App() {
   return (
-    // El Router envuelve toda la aplicación para permitir la navegación sin recargar
+    // El Router envuelve toda la aplicación
     <Router>
       <Routes>
         {/* RUTA 1: La página de inicio (/) carga el Mapa 2025 */}
