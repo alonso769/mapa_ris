@@ -1,24 +1,26 @@
+// App.tsx
 import React from 'react';
-// CAMBIO AQUÍ: Usamos 'HashRouter' en lugar de 'BrowserRouter'
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
-
-// Importamos tus dos componentes principales
-import MapaRis from './MapaRis';            // Página de Internos 2025
-import Adjudicacion2026 from './Adjudicacion2026'; // Página de Adjudicación 2026
+import { Routes, Route, HashRouter } from 'react-router-dom';
+// Nota: La importación de MapaRis ya no es necesaria si eliminas su ruta.
+import Adjudicacion2026 from './Adjudicacion2026'; 
+// import MapaRis from './MapaRis'; // Se puede eliminar si no se usa.
 
 function App() {
-  return (
-    // El Router envuelve toda la aplicación
-    <Router>
-      <Routes>
-        {/* RUTA 1: La página de inicio (/) carga el Mapa 2025 */}
-        <Route path="/" element={<MapaRis />} />
+  return (
+    <HashRouter> 
+      <Routes>
+        {/*
+           Ruta Única: Ahora la ruta principal (/) carga Adjudicacion2026.
+        */}
+        <Route path="/" element={<Adjudicacion2026 />} /> 
 
-        {/* RUTA 2: La página (/adjudicacion2026) carga el Mapa 2026 */}
-        <Route path="/adjudicacion2026" element={<Adjudicacion2026 />} />
-      </Routes>
-    </Router>
-  );
+        {/* Rutas Eliminadas/Comentadas para asegurar que solo exista Adjudicacion2026:
+        <Route path="/maparis" element={<MapaRis />} /> 
+        */}
+        
+      </Routes>
+    </HashRouter>
+  );
 }
 
 export default App;
