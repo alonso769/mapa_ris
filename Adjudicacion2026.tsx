@@ -335,10 +335,12 @@ const StatsWidget = ({ data, tiempos, selectedCareer }: { data: CentroSalud[], t
             if(c.desglose) {
                 c.desglose.forEach(d => {
                     let nombreUni = d.universidad;
+                    
                     // SI ES TODAS, QUITAMOS EL SUFIJO (XXX) PARA SUMAR AL TOTAL DE LA UNIVERSIDAD
                     if (selectedCareer === 'TODAS') {
                         nombreUni = nombreUni.split(' (')[0].trim();
                     }
+                    
                     uni[nombreUni] = (uni[nombreUni] || 0) + d.cantidad;
                 });
             }
@@ -438,15 +440,15 @@ const StatsWidget = ({ data, tiempos, selectedCareer }: { data: CentroSalud[], t
                 </div>
             )}
 
-            {/* 3. GRÁFICAS SEPARADAS */}
+            {/* 3. GRÁFICAS SEPARADAS (SIEMPRE VISIBLES) */}
             
-            {/* GRÁFICA 1: PRIMER NIVEL - SOLO SI ES 'TODAS' */}
-            {selectedCareer === 'TODAS' && renderChart("Asignación - Primer Nivel (CS/PS)", stats1Nivel, max1Nivel, '#329584', 'fas fa-clinic-medical')}
+            {/* GRÁFICA 1: PRIMER NIVEL */}
+            {renderChart("Asignación - Primer Nivel (CS/PS)", stats1Nivel, max1Nivel, '#329584', 'fas fa-clinic-medical')}
 
-            {/* GRÁFICA 2: HOSPITALES E INSTITUTOS - SOLO SI ES 'TODAS' */}
-            {selectedCareer === 'TODAS' && renderChart("Asignación - Hospitales e Institutos", statsHosp, maxHosp, '#195c97', 'fas fa-hospital')}
+            {/* GRÁFICA 2: HOSPITALES E INSTITUTOS */}
+            {renderChart("Asignación - Hospitales e Institutos", statsHosp, maxHosp, '#195c97', 'fas fa-hospital')}
 
-            {/* GRÁFICA 3: TOTAL GENERAL - SIEMPRE */}
+            {/* GRÁFICA 3: TOTAL GENERAL */}
             {renderChart("Asignación Total General", statsTotal, maxTotal, '#334155', 'fas fa-chart-bar')}
         </div>
     );
