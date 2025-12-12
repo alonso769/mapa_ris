@@ -182,6 +182,7 @@ const dataCentrosBase = [
   { id: 'r1_7', ris: 'RIS 1', nombre: 'CS SAN SEBASTIAN', lat: -12.042331, lng: -77.038673, distrito: 'CERCADO DE LIMA' },
   { id: 'r1_8', ris: 'RIS 1', nombre: 'CS UNIDAD VECINAL N°3', lat: -12.051273, lng: -77.082330, distrito: 'CERCADO DE LIMA' },
   { id: 'r1_9', ris: 'RIS 1', nombre: 'CS VILLA MARIA DEL PERPETUO SOCORRO', lat: -12.037751, lng: -77.054586, distrito: 'CERCADO DE LIMA' },
+  { id: 'r1_10', ris: 'RIS 1', nombre: 'CSMC KUYANAKUSUN', lat: -12.037769, lng: -77.081481, distrito: 'CERCADO DE LIMA' },
   { id: 'r1_11', ris: 'RIS 1', nombre: 'CSMC MIRONES BAJO', lat: -12.037769, lng: -77.081481, distrito: 'CERCADO DE LIMA' },
   { id: 'r1_12', ris: 'RIS 1', nombre: 'CSMC SAN MARCOS', lat: -12.055392, lng: -77.082387, distrito: 'PUEBLO LIBRE' },
   { id: 'r1_13', ris: 'RIS 1', nombre: 'PS PALERMO', lat: -12.040929, lng: -77.068914, distrito: 'CERCADO DE LIMA' },
