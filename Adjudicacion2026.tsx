@@ -314,7 +314,7 @@ const MapController = ({ center, zoom }: { center: L.LatLngExpression, zoom: num
 };
 
 // --- WIDGET DE ESTADÍSTICAS ---
-const StatsWidget = ({ data, tiempos }: { data: CentroSalud[], tiempos: TiempoRotacionConfig }) => {
+const StatsWidget = ({ data, tiempos, selectedCareer }: { data: CentroSalud[], tiempos: TiempoRotacionConfig, selectedCareer: string }) => {
     // 1. Separar Niveles
     const primerNivel = data.filter(c => !c.nombre.startsWith('HOSPITAL') && !c.nombre.startsWith('INSTITUTO'));
     const hospitales = data.filter(c => c.nombre.startsWith('HOSPITAL') || c.nombre.startsWith('INSTITUTO'));
@@ -322,37 +322,69 @@ const StatsWidget = ({ data, tiempos }: { data: CentroSalud[], tiempos: TiempoRo
     // 2. Cálculos Totales (Adjudicado vs Ofertado)
     const ofertado1Nivel = primerNivel.reduce((acc, c) => acc + c.capacidadTotal, 0);
     const adjudicado1Nivel = primerNivel.reduce((acc, c) => acc + c.cantidad, 0);
-    const disp1Nivel = primerNivel.reduce((acc, c) => acc + c.disponible, 0);
+    const pct1Nivel = ofertado1Nivel > 0 ? (adjudicado1Nivel / ofertado1Nivel) * 100 : 0;
 
     const ofertadoHosp = hospitales.reduce((acc, c) => acc + c.capacidadTotal, 0);
     const adjudicadoHosp = hospitales.reduce((acc, c) => acc + c.cantidad, 0);
-    const dispHosp = hospitales.reduce((acc, c) => acc + c.disponible, 0);
-
-    // 3. Porcentajes de Ocupación
-    const pct1Nivel = ofertado1Nivel > 0 ? (adjudicado1Nivel / ofertado1Nivel) * 100 : 0;
     const pctHosp = ofertadoHosp > 0 ? (adjudicadoHosp / ofertadoHosp) * 100 : 0;
 
-    // 4. Agrupar por Universidad
-    const stats = React.useMemo(() => {
+    // 3. Función Agrupar por Universidad (MODIFICADA)
+    const getStats = (source: CentroSalud[]) => {
         const uni: Record<string, number> = {};
-        data.forEach(c => {
+        source.forEach(c => {
             if(c.desglose) {
                 c.desglose.forEach(d => {
-                    uni[d.universidad] = (uni[d.universidad] || 0) + d.cantidad;
+                    let nombreUni = d.universidad;
+                    // SI ES TODAS, QUITAMOS EL SUFIJO (XXX) PARA SUMAR AL TOTAL DE LA UNIVERSIDAD
+                    if (selectedCareer === 'TODAS') {
+                        nombreUni = nombreUni.split(' (')[0].trim();
+                    }
+                    uni[nombreUni] = (uni[nombreUni] || 0) + d.cantidad;
                 });
             }
         });
-        const sortD = (a:any, b:any) => b[1] - a[1];
-        return Object.entries(uni).sort(sortD);
-    }, [data]);
+        return Object.entries(uni).sort((a, b) => b[1] - a[1]);
+    };
+
+    // 4. Calcular stats para cada grupo
+    const stats1Nivel = React.useMemo(() => getStats(primerNivel), [primerNivel, selectedCareer]);
+    const statsHosp = React.useMemo(() => getStats(hospitales), [hospitales, selectedCareer]);
+    const statsTotal = React.useMemo(() => getStats(data), [data, selectedCareer]);
+
+    // Calcular máximos para las barras de progreso
+    const max1Nivel = stats1Nivel.length > 0 ? stats1Nivel[0][1] : 1;
+    const maxHosp = statsHosp.length > 0 ? statsHosp[0][1] : 1;
+    const maxTotal = statsTotal.length > 0 ? statsTotal[0][1] : 1;
 
     if (data.length === 0) return <div style={{padding:'40px', textAlign:'center', color:'#64748b', fontSize:'14px', fontStyle:'italic'}}>No hay datos registrados.</div>;
-    const maxVal = stats.length > 0 ? stats[0][1] : 1;
+
+    // Helper para renderizar cada bloque de gráfico
+    const renderChart = (title: string, stats: [string, number][], max: number, color: string, icon: string) => (
+        <div style={{marginBottom: '30px'}}>
+             <h4 style={{ color: '#64748b', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', marginBottom: '15px', borderBottom: '1px solid #cbd5e1', paddingBottom: '5px' }}>
+                <i className={`${icon} mr-2`}></i> {title}
+            </h4>
+            {stats.length === 0 ? <div style={{fontSize:'11px', color:'#94a3b8', fontStyle:'italic'}}>Sin asignaciones.</div> : 
+             stats.map(([k, v]) => (
+                <div key={k} className="chart-row">
+                    <div className="chart-label-container">
+                        <span className="chart-label">{k}</span>
+                    </div>
+                    <div className="chart-track">
+                        <div className="chart-fill" style={{ width: `${(v / max) * 100}%`, background: color }}>
+                            <span className="chart-value-label">{v}</span>
+                        </div>
+                    </div>
+                    <div className="chart-total">{v}</div>
+                </div>
+            ))}
+        </div>
+    );
 
     return (
         <div className="fade-in" style={{paddingRight:'10px'}}>
             
-            {/* 1. TOTALES DE ADJUDICACIÓN SEPARADOS */}
+            {/* 1. TOTALES DE ADJUDICACIÓN SEPARADOS (KPIs) */}
             <h4 style={{ color: '#195c97', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', marginBottom: '15px', borderBottom:'2px solid #195c97', paddingBottom:'5px' }}>
                 <i className="fas fa-chart-pie mr-2"></i> Adjudicación por Nivel
             </h4>
@@ -406,25 +438,16 @@ const StatsWidget = ({ data, tiempos }: { data: CentroSalud[], tiempos: TiempoRo
                 </div>
             )}
 
-            {/* 3. ASIGNACIÓN POR UNIVERSIDAD */}
-            <h4 style={{ color: '#64748b', fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', marginBottom: '15px', borderBottom:'2px solid #94a3b8', paddingBottom:'5px' }}>
-                <i className="fas fa-university mr-2"></i> Asignación Total
-            </h4>
-            <div style={{paddingBottom:'20px'}}>
-                {stats.map(([k, v]) => (
-                    <div key={k} className="chart-row">
-                        <div className="chart-label-container">
-                            <span className="chart-label">{k}</span>
-                        </div>
-                        <div className="chart-track">
-                            <div className="chart-fill" style={{ width: `${(v / maxVal) * 100}%`, background: '#195c97' }}>
-                                <span className="chart-value-label">{v}</span>
-                            </div>
-                        </div>
-                        <div className="chart-total">{v}</div>
-                    </div>
-                ))}
-            </div>
+            {/* 3. GRÁFICAS SEPARADAS */}
+            
+            {/* GRÁFICA 1: PRIMER NIVEL - SOLO SI ES 'TODAS' */}
+            {selectedCareer === 'TODAS' && renderChart("Asignación - Primer Nivel (CS/PS)", stats1Nivel, max1Nivel, '#329584', 'fas fa-clinic-medical')}
+
+            {/* GRÁFICA 2: HOSPITALES E INSTITUTOS - SOLO SI ES 'TODAS' */}
+            {selectedCareer === 'TODAS' && renderChart("Asignación - Hospitales e Institutos", statsHosp, maxHosp, '#195c97', 'fas fa-hospital')}
+
+            {/* GRÁFICA 3: TOTAL GENERAL - SIEMPRE */}
+            {renderChart("Asignación Total General", statsTotal, maxTotal, '#334155', 'fas fa-chart-bar')}
         </div>
     );
 };
@@ -627,8 +650,26 @@ const Adjudicacion2026: React.FC = () => {
   }).sort((a, b) => b.capacidadTotal - a.capacidadTotal);
 
   const modalCentrosFiltrados = centros.filter(c => c.nombre.includes(modalSearchTerm.toUpperCase()));
+
+  // ==========================================
+  // LOGICA AGREGADA: CÁLCULOS DETALLADOS PARA LAS TARJETAS LATERALES
+  // ==========================================
+  
+  // 1. Totales Generales
   const totalCapacidadGlobal = centrosFiltrados.reduce((acc, curr) => acc + curr.capacidadTotal, 0);
   const totalDisponibleGlobal = centrosFiltrados.reduce((acc, curr) => acc + curr.disponible, 0);
+
+  // 2. Separar listas
+  const listaHospitales = centrosFiltrados.filter(c => c.nombre.startsWith('HOSPITAL') || c.nombre.startsWith('INSTITUTO'));
+  const listaPrimerNivel = centrosFiltrados.filter(c => !c.nombre.startsWith('HOSPITAL') && !c.nombre.startsWith('INSTITUTO'));
+
+  // 3. Totales por Grupo (Ofertado)
+  const ofertaHosp = listaHospitales.reduce((acc, c) => acc + c.capacidadTotal, 0);
+  const ofertaPrim = listaPrimerNivel.reduce((acc, c) => acc + c.capacidadTotal, 0);
+
+  // 4. Totales por Grupo (Disponible)
+  const dispHosp = listaHospitales.reduce((acc, c) => acc + c.disponible, 0);
+  const dispPrim = listaPrimerNivel.reduce((acc, c) => acc + c.disponible, 0);
 
   const toggleCentro = (nombreCentro: string, lat: number, lng: number) => {
     if (centroExpandido === nombreCentro) setCentroExpandido(null);
@@ -706,7 +747,7 @@ const Adjudicacion2026: React.FC = () => {
                       <button onClick={() => setShowTimeModal(false)} className="close-modal-btn">×</button>
                   </div>
                   <div className="modal-body custom-scrollbar" style={{padding:'20px', background:'#f8fafc'}}>
-                       <div className="time-grid">
+                        <div className="time-grid">
                            {UNIVERSIDADES.map(uni => (
                                <div key={uni} className="time-card">
                                    <div style={{fontSize:'12px', fontWeight:'700', color:'#334155', marginBottom:'10px', borderBottom:'1px solid #e2e8f0', paddingBottom:'5px', minHeight:'32px', display:'flex', alignItems:'center'}}>{uni}</div>
@@ -724,7 +765,7 @@ const Adjudicacion2026: React.FC = () => {
                                    </div>
                                </div>
                            ))}
-                       </div>
+                        </div>
                   </div>
                   <div className="modal-footer">
                       <button onClick={guardarTiempos} className="btn-modern btn-save">GUARDAR CAMBIOS</button>
@@ -837,16 +878,50 @@ const Adjudicacion2026: React.FC = () => {
 
           <div style={{ flex: 1, minWidth: '340px', background: '#ffffff', display: 'flex', flexDirection: 'column', boxShadow:'-5px 0 15px rgba(0,0,0,0.05)' }}>
               <div style={{ padding: '20px', borderBottom: '1px solid #e2e8f0', background:'#f8fafc' }}>
+                  
+                  {/* === ZONA DE TARJETAS MODIFICADA PARA MOSTRAR DETALLES === */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px', gap:'10px' }}>
-                       <div style={{ background: '#195c97', padding: '15px', borderRadius: '10px', flex: 1, textAlign:'center', color: 'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)' }}>
-                           <div style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', opacity:0.8 }}>Total Ofertado</div>
-                           <div style={{ fontSize: '28px', fontWeight: '900', marginTop:'5px' }}>{totalCapacidadGlobal}</div>
-                       </div>
-                       <div style={{ background: '#329584', padding: '15px', borderRadius: '10px', flex: 1, textAlign:'center', color: 'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)' }}>
-                           <div style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', opacity:0.8 }}>Disponible Total</div>
-                           <div style={{ fontSize: '28px', fontWeight: '900', marginTop:'5px' }}>{totalDisponibleGlobal}</div>
-                       </div>
+                        
+                        {/* TARJETA TOTAL OFERTADO */}
+                        <div style={{ background: '#195c97', padding: '15px', borderRadius: '10px', flex: 1, color: 'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+                            <div style={{textAlign:'center'}}>
+                                <div style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', opacity:0.8 }}>Total Ofertado</div>
+                                <div style={{ fontSize: '28px', fontWeight: '900', marginTop:'5px', marginBottom:'8px' }}>{totalCapacidadGlobal}</div>
+                            </div>
+                            {/* Desglose Ofertado */}
+                            <div style={{borderTop:'1px solid rgba(255,255,255,0.2)', paddingTop:'8px', display:'flex', flexDirection:'column', gap:'4px'}}>
+                                 <div style={{display:'flex', justifyContent:'space-between', fontSize:'11px'}}>
+                                    <span style={{opacity:0.9}}><i className="fas fa-hospital"></i> Hosp/Inst:</span>
+                                    <span style={{fontWeight:'bold'}}>{ofertaHosp}</span>
+                                 </div>
+                                 <div style={{display:'flex', justifyContent:'space-between', fontSize:'11px'}}>
+                                    <span style={{opacity:0.9}}><i className="fas fa-clinic-medical"></i> 1° Nivel:</span>
+                                    <span style={{fontWeight:'bold'}}>{ofertaPrim}</span>
+                                 </div>
+                            </div>
+                        </div>
+
+                        {/* TARJETA DISPONIBLE TOTAL */}
+                        <div style={{ background: '#329584', padding: '15px', borderRadius: '10px', flex: 1, color: 'white', boxShadow:'0 4px 6px rgba(0,0,0,0.1)', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+                            <div style={{textAlign:'center'}}>
+                                <div style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase', opacity:0.8 }}>Disponible Total</div>
+                                <div style={{ fontSize: '28px', fontWeight: '900', marginTop:'5px', marginBottom:'8px' }}>{totalDisponibleGlobal}</div>
+                            </div>
+                             {/* Desglose Disponible */}
+                            <div style={{borderTop:'1px solid rgba(255,255,255,0.2)', paddingTop:'8px', display:'flex', flexDirection:'column', gap:'4px'}}>
+                                 <div style={{display:'flex', justifyContent:'space-between', fontSize:'11px'}}>
+                                    <span style={{opacity:0.9}}><i className="fas fa-hospital"></i> Hosp/Inst:</span>
+                                    <span style={{fontWeight:'bold'}}>{dispHosp}</span>
+                                 </div>
+                                 <div style={{display:'flex', justifyContent:'space-between', fontSize:'11px'}}>
+                                    <span style={{opacity:0.9}}><i className="fas fa-clinic-medical"></i> 1° Nivel:</span>
+                                    <span style={{fontWeight:'bold'}}>{dispPrim}</span>
+                                 </div>
+                            </div>
+                        </div>
                   </div>
+                  {/* ========================================================= */}
+
                   <div style={{ display: 'flex', background: '#f1f5f9', borderRadius: '8px', padding: '4px', border: '1px solid #e2e8f0' }}>
                       <button onClick={() => setActiveTab('lista')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', background: activeTab === 'lista' ? '#ffffff' : 'transparent', color: activeTab === 'lista' ? '#195c97' : '#64748b', fontWeight: '700', cursor: 'pointer', boxShadow: activeTab === 'lista' ? '0 2px 5px rgba(0,0,0,0.1)' : 'none' }}>SEDES</button>
                       <button onClick={() => setActiveTab('reportes')} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: 'none', background: activeTab === 'reportes' ? '#ffffff' : 'transparent', color: activeTab === 'reportes' ? '#195c97' : '#64748b', fontWeight: '700', cursor: 'pointer', boxShadow: activeTab === 'reportes' ? '0 2px 5px rgba(0,0,0,0.1)' : 'none' }}>GRÁFICOS</button>
@@ -887,7 +962,7 @@ const Adjudicacion2026: React.FC = () => {
                       })
                   ) : (
                       <div className="fade-in">
-                          <StatsWidget data={centrosFiltrados} tiempos={tiemposRotacion} />
+                          <StatsWidget data={centrosFiltrados} tiempos={tiemposRotacion} selectedCareer={selectedCareer} />
                       </div>
                   )}
               </div>
